@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Indian Income Tax Calculator – New Regime FY2025-26</title>
+    <style>
+      :root {
+        --primary: #2563eb;
+        --primary-light: #3b82f6;
+        --success: #059669;
+        --warning: #ca8a04;
+        --danger: #dc2626;
+        --info: #0891b2;
+      }
+
+      body {
+        font-family: 'Segoe UI', system-ui, sans-serif;
+        padding: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+        background-color: #f8fafc;
+        color: #1e293b;
+      }
+
+      .container {
+        background-color: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        padding: 24px;
+        margin-top: 20px;
+      }
+
+      h1 {
+        color: var(--primary);
+        font-size: 2rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 24px;
+        position: relative;
+      }
+
+      .input-group::before {
+        content: '₹';
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #64748b;
+        font-size: 16px;
+        pointer-events: none;
+      }
+
+      input {
+        flex: 1;
+        padding: 12px;
+        padding-left: 28px;
+        font-size: 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        transition: border-color 0.2s;
+      }
+
+      input:focus {
+        outline: none;
+        border-color: var(--primary-light);
+      }
+
+      button {
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: 600;
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+      }
+
+      button:hover {
+        background-color: var(--primary-light);
+      }
+
+      .summary-card {
+        background-color: #f8fafc;
+        border-radius: 8px;
+        padding: 16px;
+        margin-bottom: 24px;
+      }
+
+      .highlight {
+        font-size: 1.25rem;
+        font-weight: 600;
+        color: var(--primary);
+      }
+
+      table {
+        border-collapse: collapse;
+        width: 100%;
+        margin-top: 20px;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+      }
+
+      th,
+      td {
+        padding: 12px 16px;
+        text-align: left;
+        border-bottom: 1px solid #e2e8f0;
+      }
+
+      th {
+        background-color: #f1f5f9;
+        font-weight: 600;
+        color: #475569;
+      }
+
+      tr:last-child td {
+        border-bottom: none;
+      }
+
+      .tax-amount {
+        font-weight: 600;
+        color: var(--success);
+      }
+
+      .tax-rate {
+        color: var(--warning);
+        font-weight: 600;
+      }
+
+      .final-tax {
+        background-color: #f0fdf4;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 24px;
+      }
+
+      .final-tax .total {
+        font-size: 1.5rem;
+        color: var(--success);
+        font-weight: 600;
+      }
+
+      .info-card {
+        background-color: #ecfeff;
+        border-radius: 8px;
+        padding: 16px;
+        margin-top: 16px;
+        border-left: 4px solid var(--info);
+      }
+
+      .savings-highlight {
+        color: var(--success);
+        font-weight: 600;
+        font-size: 1.1rem;
+      }
+
+      @media (max-width: 768px) {
+        body {
+          padding: 12px;
+        }
+
+        .input-group {
+          flex-direction: column;
+        }
+
+        table {
+          display: block;
+          overflow-x: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>
+        Indian Income Tax Calculator<br /><small
+          style="font-size: 1rem; color: #64748b"
+          >New Regime FY2025-26</small
+        >
+      </h1>
+
+      <div class="input-group">
+        <input
+          type="text"
+          id="incomeInput"
+          placeholder="Enter your annual gross income (e.g., 15,00,000)"
+        />
+        <button onclick="calculateAndDisplay()">Calculate Tax</button>
+      </div>
+
+      <div id="result"></div>
+    </div>
+
+    <script>
+      // Function to format number with Indian number system
+      function formatIndianNumber(num) {
+        const str = num.toString();
+        if (str.length <= 3) return str;
+
+        let lastThree = str.substring(str.length - 3);
+        let remaining = str.substring(0, str.length - 3);
+        let formatted = '';
+
+        // Format remaining digits in groups of 2
+        while (remaining.length > 0) {
+          if (formatted) formatted = ',' + formatted;
+          formatted =
+            (remaining.length >= 2
+              ? remaining.substring(remaining.length - 2)
+              : remaining) + formatted;
+          remaining = remaining.substring(0, remaining.length - 2);
+        }
+
+        return formatted + ',' + lastThree;
+      }
+
+      // Function to remove all non-digit characters
+      function cleanNumber(str) {
+        return str.replace(/[^\d]/g, '');
+      }
+
+      // Setup input formatting
+      const incomeInput = document.getElementById('incomeInput');
+
+      incomeInput.addEventListener('input', function (e) {
+        let value = cleanNumber(e.target.value);
+        if (value) {
+          e.target.value = formatIndianNumber(value);
+        }
+      });
+
+      // Function to calculate tax using the new tax regime with Section 87A rebate and marginal relief.
+      function calculateTax(grossIncome) {
+        const standardDeduction = 75000;
+        const taxableIncome = Math.max(0, grossIncome - standardDeduction);
+
+        const slabs = [
+          { upperLimit: 400000, rate: 0 },
+          { upperLimit: 800000, rate: 0.05 },
+          { upperLimit: 1200000, rate: 0.1 },
+          { upperLimit: 1600000, rate: 0.15 },
+          { upperLimit: 2000000, rate: 0.2 },
+          { upperLimit: 2400000, rate: 0.25 },
+          { upperLimit: Infinity, rate: 0.3 },
+        ];
+
+        let computedTax = 0;
+        let breakdown = [];
+        let lowerLimit = 0;
+
+        for (let i = 0; i < slabs.length; i++) {
+          const upperLimit = slabs[i].upperLimit;
+          const rate = slabs[i].rate;
+          if (taxableIncome > lowerLimit) {
+            const incomeInSlab =
+              Math.min(taxableIncome, upperLimit) - lowerLimit;
+            const taxForSlab = incomeInSlab * rate;
+            breakdown.push({
+              slab: `₹${lowerLimit + 1} to ₹${
+                upperLimit === Infinity ? 'and above' : upperLimit
+              }`,
+              incomeInSlab: incomeInSlab,
+              rate: (rate * 100).toFixed(2) + '%',
+              taxForSlab: taxForSlab,
+            });
+            computedTax += taxForSlab;
+          }
+          lowerLimit = upperLimit;
+        }
+
+        const grossThreshold = 1275000;
+
+        let finalTax;
+        if (grossIncome <= grossThreshold) {
+          finalTax = 0;
+        } else {
+          const marginalRelief = grossIncome - grossThreshold;
+          finalTax = Math.min(computedTax, marginalRelief);
+        }
+
+        const cess = finalTax * 0.04;
+        const totalTax = finalTax + cess;
+
+        return {
+          grossIncome,
+          standardDeduction,
+          taxableIncome,
+          breakdown,
+          computedTax,
+          grossThreshold,
+          marginalRelief:
+            grossIncome > grossThreshold ? grossIncome - grossThreshold : 0,
+          finalTax,
+          cess,
+          totalTax,
+          taxSavingsFromRelief:
+            grossIncome > grossThreshold ? computedTax - finalTax : 0,
+        };
+      }
+
+      function formatCurrency(amount) {
+        return amount.toLocaleString('en-IN', {
+          maximumFractionDigits: 0,
+          style: 'currency',
+          currency: 'INR',
+        });
+      }
+
+      function calculateAndDisplay() {
+        const value = cleanNumber(incomeInput.value);
+        const grossIncome = parseFloat(value);
+        if (isNaN(grossIncome) || grossIncome < 0) {
+          alert('Please enter a valid income.');
+          return;
+        }
+
+        const result = calculateTax(grossIncome);
+        const resultDiv = document.getElementById('result');
+
+        let html = `
+          <div class="summary-card">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px;">
+              <div>
+                <div>Gross Income</div>
+                <div class="highlight">${formatCurrency(
+                  result.grossIncome
+                )}</div>
+              </div>
+              <div>
+                <div>Standard Deduction</div>
+                <div class="highlight">${formatCurrency(
+                  result.standardDeduction
+                )}</div>
+              </div>
+              <div>
+                <div>Taxable Income</div>
+                <div class="highlight">${formatCurrency(
+                  result.taxableIncome
+                )}</div>
+              </div>
+            </div>
+          </div>`;
+
+        html += `<table>
+          <thead>
+            <tr>
+              <th>Income Slab</th>
+              <th>Amount in Slab</th>
+              <th>Tax Rate</th>
+              <th>Tax Amount</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+        result.breakdown.forEach((item) => {
+          html += `
+            <tr>
+              <td>${item.slab}</td>
+              <td>${formatCurrency(item.incomeInSlab)}</td>
+              <td class="tax-rate">${item.rate}</td>
+              <td class="tax-amount">${formatCurrency(item.taxForSlab)}</td>
+            </tr>`;
+        });
+        html += `</tbody></table>`;
+
+        if (grossIncome <= result.grossThreshold) {
+          html += `
+            <div class="final-tax" style="background-color: #ecfdf5;">
+              <p style="color: var(--success); font-size: 1.25rem; margin: 0;">
+                <strong>✓ No Tax Applicable</strong><br>
+                <span style="font-size: 1rem; color: #047857;">Your income is below ₹${result.grossThreshold.toLocaleString()} - You qualify for full tax rebate under Section 87A</span>
+              </p>
+            </div>`;
+        } else {
+          // Show marginal relief information if applicable
+          if (result.taxSavingsFromRelief > 0) {
+            html += `
+              <div class="info-card">
+                <p style="margin: 0 0 8px 0;">
+                  <strong style="color: var(--info);">✨ Marginal Relief Applied</strong>
+                </p>
+                <p style="margin: 0 0 8px 0;">
+                  Your initial tax calculation was ${formatCurrency(
+                    result.computedTax
+                  )}, but due to marginal relief provisions, 
+                  your tax has been reduced to ${formatCurrency(
+                    result.finalTax
+                  )}.
+                </p>
+                <p class="savings-highlight" style="margin: 0;">
+                  You save ${formatCurrency(
+                    result.taxSavingsFromRelief
+                  )} thanks to marginal relief!
+                </p>
+              </div>`;
+          }
+
+          html += `
+            <div class="final-tax">
+              <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 16px;">
+                <div>
+                  <div>Initial Tax</div>
+                  <div class="tax-amount">${formatCurrency(
+                    result.computedTax
+                  )}</div>
+                </div>
+                <div>
+                  <div>Health & Education Cess (4%)</div>
+                  <div class="tax-amount">${formatCurrency(result.cess)}</div>
+                </div>
+              </div>
+              <div style="border-top: 2px solid #e2e8f0; padding-top: 16px;">
+                <div>Total Tax Liability</div>
+                <div class="total">${formatCurrency(result.totalTax)}</div>
+              </div>
+            </div>`;
+        }
+
+        resultDiv.innerHTML = html;
+      }
+
+      // Add event listener for Enter key
+      incomeInput.addEventListener('keypress', function (e) {
+        if (e.key === 'Enter') {
+          calculateAndDisplay();
+        }
+      });
+    </script>
+  </body>
+</html>
