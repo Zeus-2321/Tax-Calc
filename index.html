@@ -42,28 +42,39 @@
         display: flex;
         gap: 12px;
         margin-bottom: 24px;
-        position: relative;
       }
 
-      .input-group::before {
-        content: '₹';
+      .input-wrapper {
+        position: relative;
+        flex: 1;
+        display: flex;
+        align-items: center;
+      }
+
+      .rupee-sign {
         position: absolute;
         left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
         color: #64748b;
         font-size: 16px;
         pointer-events: none;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        height: 100%;
       }
 
       input {
-        flex: 1;
+        width: 100%;
         padding: 12px;
         padding-left: 28px;
         font-size: 16px;
         border: 2px solid #e2e8f0;
         border-radius: 8px;
         transition: border-color 0.2s;
+        box-sizing: border-box;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
       }
 
       input:focus {
@@ -81,6 +92,9 @@
         border-radius: 8px;
         cursor: pointer;
         transition: background-color 0.2s;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
       }
 
       button:hover {
@@ -168,13 +182,36 @@
           padding: 12px;
         }
 
+        .container {
+          padding: 16px;
+        }
+
         .input-group {
           flex-direction: column;
+        }
+
+        .rupee-sign {
+          left: 8px;
+          font-size: 14px;
+        }
+
+        input {
+          padding: 10px;
+          padding-left: 24px;
+          font-size: 14px;
+        }
+
+        button {
+          width: 100%;
         }
 
         table {
           display: block;
           overflow-x: auto;
+        }
+
+        h1 {
+          font-size: 1.5rem;
         }
       }
     </style>
@@ -189,11 +226,14 @@
       </h1>
 
       <div class="input-group">
-        <input
-          type="text"
-          id="incomeInput"
-          placeholder="Enter your annual gross income (e.g., 15,00,000)"
-        />
+        <div class="input-wrapper">
+          <span class="rupee-sign">₹</span>
+          <input
+            type="text"
+            id="incomeInput"
+            placeholder="Enter your annual gross income (e.g., 15,00,000)"
+          />
+        </div>
         <button onclick="calculateAndDisplay()">Calculate Tax</button>
       </div>
 
